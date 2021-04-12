@@ -40,14 +40,13 @@ var myMap = L.map("mapid", {
 var queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_week.geojson";
 
 // Store tectonic plates url to a variable
-
 var platesURL = "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_plates.json"
 
 
 // Perform a GET request to the query URL
 d3.json(queryUrl).then(function (data) {
 
-    // Define arrays to hold created city and state markers
+    // Define arrays to hold earthquake markers
     var quakeMarkers = [];
 
     console.log(data['features'])
@@ -82,14 +81,8 @@ d3.json(queryUrl).then(function (data) {
 
     });
 
-    //Hit tectonic plate api and push to array for layer control
+    //Hit tectonic plate api and use L.geoJson method to bind to a variable for direct injection into layer control
     d3.json(platesURL).then(function (plates) {
-
-        // var plateMarkers = [];
-
-        // plates['features'].forEach(d => {
-        //     plateMarkers.push(L.polygon([d['geometry']['coordinates']]), { color: 'red' });
-        // });
 
         var plateMarkers = L.geoJson(plates, {
             style: function (feature) {
@@ -114,12 +107,10 @@ d3.json(queryUrl).then(function (data) {
         console.log(plateMarkers);
         console.log(quakeMarkers);
 
-        // Create two separate layer groups below. One for earthquake markers, and one for plate data
+        // Create a layers group for the earthquakes
         var quakeLayer = new L.layerGroup(quakeMarkers)
-        // var plateLayer = new L.layerGroup(plateMarkers)
 
-        // Create an overlayMaps object here to contain the "State Population" and "City Population" layers
-
+        // Create an overlayMaps object here to contain the earchquake and tectonic plate layers
         var overlayLayers = {
             'Earthquakes': quakeLayer,
             'Tectonic Plates': plateMarkers

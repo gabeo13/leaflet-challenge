@@ -1,4 +1,4 @@
-# leaflet-challenge {Geo-Mapping with Leaflet.JS}
+# leaflet-challenge {GeoJson with Leaflet.JS}
 ![](Images/san_andreas.jpg)
 
 ---
@@ -11,12 +11,12 @@ The USGS is interested in building a new set of tools that will allow them visua
 ## Dashboard Development Toolkit
 
 >* JavaScript
->* d3.js
->* Leaflet.js
+>* [d3.js](https://d3js.org/)
+>* [Leaflet.js](https://leafletjs.com/)
 >* GitBash
 >* HTML
 >* CSS
->* USGS GeoJson API
+>* [USGS GeoJson API](https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php)
 ---
 ## Operating Instructions
 1. Clone repository to desired location while maintaining directory paths. 
@@ -31,3 +31,5 @@ The USGS is interested in building a new set of tools that will allow them visua
 
 ---
 ## Application Screenshots
+
+![](Images/map_movie.gif)
