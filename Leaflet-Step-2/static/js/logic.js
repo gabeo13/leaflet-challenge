@@ -26,13 +26,6 @@ var outdoormap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x
     accessToken: API_KEY
 });
 
-// Create base layers
-var baselayer = {
-    'Satellite Map': satmap,
-    'Light Map': lightmap,
-    'Outdoor Map': outdoormap
-};
-
 // Create our map object
 var myMap = L.map("mapid", {
     center: [
@@ -42,22 +35,22 @@ var myMap = L.map("mapid", {
     layers: [satmap, lightmap, outdoormap]
 });
 
-// Define arrays to hold created city and state markers
-var quakeMarkers = [];
-var plateMarkers = [];
 
 // Store our API endpoint inside queryUrl
-var queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson";
+var queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_week.geojson";
 
 // Store tectonic plates url to a variable
 
 var platesURL = "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_plates.json"
 
 
-// Perform a GE request to the query URL
+// Perform a GET request to the query URL
 d3.json(queryUrl).then(function (data) {
 
-    console.log(data.features)
+    // Define arrays to hold created city and state markers
+    var quakeMarkers = [];
+
+    console.log(data['features'])
 
     // Iterate through json and construct markers
     data['features'].forEach(d => {
@@ -89,52 +82,74 @@ d3.json(queryUrl).then(function (data) {
 
     });
 
-});
+    //Hit tectonic plate api and push to array for layer control
+    d3.json(platesURL).then(function (plates) {
 
-//Hit tectonic plate api and push to array for layer control
-d3.json(platesURL).then(function (plates) {
+        // var plateMarkers = [];
 
-    plates['features'].forEach(d => {
-        plateMarkers.push(L.polygon([d['geometry']['coordinates']]), { color: 'red' });
+        // plates['features'].forEach(d => {
+        //     plateMarkers.push(L.polygon([d['geometry']['coordinates']]), { color: 'red' });
+        // });
+
+        var plateMarkers = L.geoJson(plates, {
+            style: function (feature) {
+                return {
+                    color: '#34495e',
+                    fillColor: 'white',
+                    fillOpacity: 0
+                }
+            },
+            onEachFeature: function (feature, layer) {
+                layer.bindPopup("Plate Name: " + feature.properties.PlateName)
+            }
+        }).addTo(myMap);
+
+        // Create base layers
+        var baselayer = {
+            'Satellite Map': satmap,
+            'Light Map': lightmap,
+            'Outdoor Map': outdoormap
+        };
+
+        console.log(plateMarkers);
+        console.log(quakeMarkers);
+
+        // Create two separate layer groups below. One for earthquake markers, and one for plate data
+        var quakeLayer = new L.layerGroup(quakeMarkers)
+        // var plateLayer = new L.layerGroup(plateMarkers)
+
+        // Create an overlayMaps object here to contain the "State Population" and "City Population" layers
+
+        var overlayLayers = {
+            'Earthquakes': quakeLayer,
+            'Tectonic Plates': plateMarkers
+        };
+
+        // Create a layer control, containing our baseMaps and overlayMaps, and add them to the map
+        L.control.layers(baselayer, overlayLayers,
+            {
+                'collapsed': false
+            }).addTo(myMap)
+
+
+        // Add legend, see CSS for Styling
+        var legend = L.control({ position: "bottomleft" });
+
+        legend.onAdd = function (myMap) {
+            var div = L.DomUtil.create("div", "legend");
+            div.innerHTML += "<h4>Depth of Event (km)</h4>";
+            div.innerHTML += '<i style="background: #2ecc71"></i><span>0-10km</span><br>';
+            div.innerHTML += '<i style="background: #f1c40f"></i><span>10-30km</span><br>';
+            div.innerHTML += '<i style="background: #f39c12"></i><span>30-50km</span><br>';
+            div.innerHTML += '<i style="background: #d35400"></i><span>50-70km</span><br>';
+            div.innerHTML += '<i style="background: #e74c3c"></i><span>70-90km</span><br>';
+            div.innerHTML += '<i style="background: #c0392b"></i><span>90+ km</span><br>';
+
+            return div;
+        };
+
+        legend.addTo(myMap);
+
     });
 
 });
-
-console.log(plateMarkers);
-console.log(quakeMarkers);
-
-// Create two separate layer groups below. One for earthquake markers, and one for plate data
-var quakeLayer = new L.layerGroup(quakeMarkers)
-var plateLayer = new L.layerGroup(plateMarkers)
-
-// Create an overlayMaps object here to contain the "State Population" and "City Population" layers
-
-var overlayLayers = {
-    'Earthquakes': quakeLayer,
-    'Tectonic Plates': plateLayer
-};
-
-// Create a layer control, containing our baseMaps and overlayMaps, and add them to the map
-L.control.layers(baselayer, overlayLayers,
-    {
-        'collapsed': false
-    }).addTo(myMap)
-
-
-// Add legend, see CSS for Styling
-var legend = L.control({ position: "bottomleft" });
-
-legend.onAdd = function (myMap) {
-    var div = L.DomUtil.create("div", "legend");
-    div.innerHTML += "<h4>Depth of Event (km)</h4>";
-    div.innerHTML += '<i style="background: #2ecc71"></i><span>0-10km</span><br>';
-    div.innerHTML += '<i style="background: #f1c40f"></i><span>10-30km</span><br>';
-    div.innerHTML += '<i style="background: #f39c12"></i><span>30-50km</span><br>';
-    div.innerHTML += '<i style="background: #d35400"></i><span>50-70km</span><br>';
-    div.innerHTML += '<i style="background: #e74c3c"></i><span>70-90km</span><br>';
-    div.innerHTML += '<i style="background: #c0392b"></i><span>90+ km</span><br>';
-
-    return div;
-};
-
-legend.addTo(myMap);
